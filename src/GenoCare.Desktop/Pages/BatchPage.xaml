@@ -10,7 +10,7 @@
                 <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding ArabicName}" /></DataTemplate></ComboBox.ItemTemplate>
             </ComboBox>
             <TextBox Header="رقم التشغيلة" Width="180" Text="{Binding BatchNumber, Mode=TwoWay}" />
-            <DatePicker Header="تاريخ الصلاحية" Date="{Binding SelectedDate, Mode=TwoWay}" />
+            <DatePicker Header="تاريخ الصلاحية" SelectedDate="{Binding SelectedDate, Mode=TwoWay}" />
             <Button Content="إضافة" Command="{Binding AddBatchCommand}" VerticalAlignment="Bottom" />
         </StackPanel>
         <Grid Grid.Row="1">

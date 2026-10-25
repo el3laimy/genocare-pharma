@@ -9,6 +9,7 @@ namespace GenoCare.Desktop;
 public sealed partial class MainWindow : Window
 {
     private bool _startupFailure;
+    private bool _navigationInitialized;
 
     public MainWindow()
     {
@@ -25,8 +26,9 @@ public sealed partial class MainWindow : Window
 
     private void NavigationShell_Loaded(object sender, RoutedEventArgs e)
     {
-        if (!_startupFailure)
-            NavigationShell.SelectedItem = NavigationShell.MenuItems[0];
+        if (_startupFailure || _navigationInitialized) return;
+        _navigationInitialized = true;
+        NavigationShell.SelectedItem = NavigationShell.MenuItems[0];
     }
 
     private void NavigationShell_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
