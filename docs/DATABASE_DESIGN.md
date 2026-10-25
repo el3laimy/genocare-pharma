@@ -2,6 +2,8 @@
 
 هذا تصور قبل التنفيذ؛ لا توجد قاعدة أو migrations في هذه المهمة. أسماء الجداول/الأعمدة قابلة للمراجعة.
 
+> أصبح لدى Infrastructure migration أولية في Task 004؛ يظل المخطط قابلًا للتوسع ولا يمثل بعد جداول المبيعات أو الحسابات.
+
 ## ترجمة Domain الحالية إلى تخزين لاحق
 
 الـDomain في Task 003 لا يعتمد على EF Core. عند إضافة Infrastructure يجب حفظ `products` و`batches` دون رصيد Batch مستقل، وحفظ `stock_movements` كمصدر الحقيقة. يشتق الرصيد بتجميع SignedQuantity حسب الحالة؛ Available وحدها قابلة للبيع، بينما Quarantined وDamaged محفوظتان للتتبع ولا تدخلان في FEFO.
@@ -25,6 +27,14 @@
 - `stocktakes` و`stocktake_lines` و`adjustments` و`stock_overrides(id, reason, authorized_by, approved_at)`
 - `representatives` و`deliveries`
 - `audit_entries(id, actor, action, entity_type, entity_id, before_json, after_json, occurred_at)`
+
+### جداول Task 004 المنفذة
+
+`Products` يفرض فهرسًا فريدًا على `InternalCode`. `Batches` يفرض فهرسًا فريدًا مركبًا على `(ProductId, BatchNumber)`. `StockMovements` يحفظ `TransactionId`, `EntryIndex`, النوع، الحالة، الكمية، المرجع، والتاريخ، مع فهرس فريد `(TransactionId, EntryIndex)` وفهارس Batch/التاريخ وقيود FK إلى Product وBatch.
+
+يستخدم `StockMovements` مفتاحًا أجنبيًا مركبًا `(ProductId, BatchId)` إلى `(ProductId, Id)` في `Batches` لمنع حركة تربط صنفًا بتشغيلة صنف آخر. كمية الحركة موجبة، والحالة/النوع ضمن القيم المعروفة. التطبيق يمنع تعديل/حذف الحركات بعد الإدراج؛ لا توجد آلية audit كاملة بعد.
+
+الأسعار `CurrentRetailPrice` و`CurrentPurchasePrice` تُخزن `TEXT` عبر conversion invariant-culture إلى `decimal` لاستعادة القيمة الدقيقة. هذا لا يحسم سياسة الضرائب أو التقريب التجاري.
 
 ## قواعد تصميم
 

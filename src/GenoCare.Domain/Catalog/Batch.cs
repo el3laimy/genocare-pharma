@@ -2,6 +2,11 @@ namespace GenoCare.Domain.Catalog;
 
 public sealed class Batch
 {
+    private Batch()
+    {
+        BatchNumber = string.Empty;
+    }
+
     private Batch(Guid id, Guid productId, string batchNumber, DateOnly expiryDate)
     {
         Id = id;

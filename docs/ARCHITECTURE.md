@@ -39,3 +39,11 @@ Catalog & Inventory، Purchasing، Sales & Orders، Parties & Ledger، Delivery 
 ## حدود البيئة
 
 Zorin/Linux مناسب للمنطق والاختبارات والأدوات؛ WinUI 3 وWindows App SDK يحتاجان Windows لبناء وتشغيل الواجهة. لا يفترض التصميم توفر الإنترنت.
+
+## SQLite في Infrastructure (Task 004)
+
+`GenoCareDbContext` و`InventoryPersistence` يعزلان EF Core عن Domain وWinUI. مصدر حقيقة المخزون هو جدول `StockMovements`؛ لا يوجد رصيد قابل للتعديل في `Batch`. كل Post يبدأ SQLite transaction، و`TransactionId` مع `EntryIndex` يمنع إعادة نشر الحركة/الانتقال. فحص الرصيد والحفظ داخل المعاملة نفسها، مع رفض Issue غير المتاح، دون تطبيق سياسة التجاوز الإداري.
+
+التخفيض في `StockAdjustment` يخضع لفحص الحالة نفسها (Available/Quarantined/Damaged) داخل المعاملة؛ الزيادة المشروعة لا تُمنع. العلاقة المركبة `(ProductId, BatchId)` في الحركة تشير إلى المفتاح المركب للصنف والتشغيلة، لذلك لا يكفي وجود الكيانين منفصلين. `StockMovements` append-only: يمنع DbContext تحديث أو حذف سجل مرحّل.
+
+تُخزّن الأموال كنص invariant culture عبر ValueConverter للحفاظ على قيمة `decimal` كاملة بدل SQLite REAL التقريبية. تُشغّل migrations عند تهيئة قاعدة التطبيق في مسار Application Data الذي يحدده المضيف، وليس بجانب binaries. SQLite محلي وoffline؛ التزامن الكتابي المتزامن يحتاج معاملات قصيرة وسياسة إعادة محاولة مستقبلية، ولا توجد مزامنة أجهزة في هذه المرحلة.

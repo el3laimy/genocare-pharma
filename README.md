@@ -24,7 +24,7 @@ C#/.NET 10، WinUI 3 وXAML وWindows App SDK، Fluent Design، MVVM عبر Comm
 - [دورات العمل](docs/WORKFLOWS.md) · [تصميم قاعدة البيانات](docs/DATABASE_DESIGN.md) · [خريطة الشاشات](docs/SCREEN_MAP.md)
 - [خارطة الطريق](docs/ROADMAP.md) · [القرارات المفتوحة](docs/OPEN_DECISIONS.md)
 
-هذه المهمة توثق الأساس فقط؛ لا تحتوي على كود تطبيق أو قاعدة بيانات فعلية أو migrations.
+يحتوي Task 004 على طبقة SQLite وmigration أولية واختبارات تكامل حقيقية؛ لا يحتوي المشروع بعد على شاشات أعمال أو مبيعات أو مشتريات.
 
 ## بنية الحل الحالية
 
@@ -41,8 +41,11 @@ dotnet restore src/GenoCare.Domain/GenoCare.Domain.csproj
 dotnet build src/GenoCare.Domain/GenoCare.Domain.csproj
 dotnet test tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj
 dotnet test tests/GenoCare.Application.Tests/GenoCare.Application.Tests.csproj
+dotnet test tests/GenoCare.Infrastructure.Tests/GenoCare.Infrastructure.Tests.csproj
 ```
 
 بناء `src/GenoCare.Desktop/GenoCare.Desktop.csproj` واختبار الحل الكامل موكلان إلى Windows CI في `.github/workflows/ci.yml`.
+
+يجب أن يمرر المضيف مسار قاعدة البيانات إلى `AddGenoCareInfrastructure` داخل Windows Application Data، ثم يستدعي `DatabaseInitializer` لتطبيق migrations. لا تُخزن قاعدة SQLite بجوار binaries. SQLite يعمل offline، وتحتاج الكتابات المتزامنة إلى معاملات قصيرة؛ لا توجد مزامنة أجهزة في هذه المرحلة.
 
 المتطلبات التفصيلية ومصدر إجابات العميل في [CLIENT_REQUIREMENTS_SOURCE](docs/CLIENT_REQUIREMENTS_SOURCE.md)، والقرارات التي لم تُحسم في [OPEN_DECISIONS](docs/OPEN_DECISIONS.md).

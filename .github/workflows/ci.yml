@@ -20,11 +20,13 @@ jobs:
       - run: dotnet restore src/GenoCare.Infrastructure/GenoCare.Infrastructure.csproj
       - run: dotnet restore tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj
       - run: dotnet restore tests/GenoCare.Application.Tests/GenoCare.Application.Tests.csproj
+      - run: dotnet restore tests/GenoCare.Infrastructure.Tests/GenoCare.Infrastructure.Tests.csproj
       - run: dotnet build src/GenoCare.Domain/GenoCare.Domain.csproj --no-restore --configuration Release
       - run: dotnet build src/GenoCare.Application/GenoCare.Application.csproj --no-restore --configuration Release
       - run: dotnet build src/GenoCare.Infrastructure/GenoCare.Infrastructure.csproj --no-restore --configuration Release
       - run: dotnet test tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj --configuration Release
       - run: dotnet test tests/GenoCare.Application.Tests/GenoCare.Application.Tests.csproj --configuration Release
+      - run: dotnet test tests/GenoCare.Infrastructure.Tests/GenoCare.Infrastructure.Tests.csproj --configuration Release
 
   windows:
     name: Windows WinUI build
@@ -42,3 +44,4 @@ jobs:
         run: |
           dotnet test tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj --configuration Release --no-restore
           dotnet test tests/GenoCare.Application.Tests/GenoCare.Application.Tests.csproj --configuration Release --no-restore
+          dotnet test tests/GenoCare.Infrastructure.Tests/GenoCare.Infrastructure.Tests.csproj --configuration Release --no-restore
