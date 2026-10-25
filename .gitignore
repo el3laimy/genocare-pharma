@@ -1,0 +1,18 @@
+# .NET build output
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+TestResults/
+artifacts/
+
+# Local GenoCare data and secrets
+*.db
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.bak
+*.log
+appsettings.local.json
