@@ -47,3 +47,7 @@ Zorin/Linux مناسب للمنطق والاختبارات والأدوات؛ Wi
 التخفيض في `StockAdjustment` يخضع لفحص الحالة نفسها (Available/Quarantined/Damaged) داخل المعاملة؛ الزيادة المشروعة لا تُمنع. العلاقة المركبة `(ProductId, BatchId)` في الحركة تشير إلى المفتاح المركب للصنف والتشغيلة، لذلك لا يكفي وجود الكيانين منفصلين. `StockMovements` append-only: يمنع DbContext تحديث أو حذف سجل مرحّل.
 
 تُخزّن الأموال كنص invariant culture عبر ValueConverter للحفاظ على قيمة `decimal` كاملة بدل SQLite REAL التقريبية. تُشغّل migrations عند تهيئة قاعدة التطبيق في مسار Application Data الذي يحدده المضيف، وليس بجانب binaries. SQLite محلي وoffline؛ التزامن الكتابي المتزامن يحتاج معاملات قصيرة وسياسة إعادة محاولة مستقبلية، ولا توجد مزامنة أجهزة في هذه المرحلة.
+
+## Desktop UI (Task 005)
+
+تظل واجهة WinUI خارج Domain وInfrastructure؛ ViewModels تعتمد على Application contracts/use cases فقط. Composition Root في Desktop يسجل `AddGenoCareApplication` و`AddGenoCareInfrastructure` ويشغل `DatabaseInitializer` قبل عرض الـShell. فشل التهيئة يعرض شاشة خطأ عربية بدل تجاهل الخطأ.

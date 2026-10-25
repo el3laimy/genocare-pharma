@@ -15,6 +15,7 @@
     <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GenoCare.Application\GenoCare.Application.csproj" />
     <ProjectReference Include="..\GenoCare.Infrastructure\GenoCare.Infrastructure.csproj" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />

@@ -1,0 +1,42 @@
+<Page
+    x:Class="GenoCare.Desktop.Pages.ProductPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    FlowDirection="RightToLeft">
+    <Grid Padding="24" RowSpacing="16">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBox Width="320" PlaceholderText="بحث بالكود أو الاسم" Text="{Binding SearchText, Mode=TwoWay}" />
+            <Button Content="بحث" Command="{Binding SearchCommand}" />
+            <Button Content="صنف جديد" Command="{Binding NewProductCommand}" />
+            <ProgressRing IsActive="{Binding IsBusy}" Width="24" Height="24" />
+        </StackPanel>
+        <Grid Grid.Row="1" ColumnSpacing="24">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="3*"/></Grid.ColumnDefinitions>
+            <ListView ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct, Mode=TwoWay}" SelectionChanged="ProductList_SelectionChanged" x:Name="ProductList">
+                <ListView.ItemTemplate><DataTemplate>
+                    <StackPanel Padding="8">
+                        <TextBlock Text="{Binding ArabicName}" FontSize="16" />
+                        <TextBlock Text="{Binding InternalCode}" Opacity="0.7" />
+                    </StackPanel>
+                </DataTemplate></ListView.ItemTemplate>
+            </ListView>
+            <ScrollViewer Grid.Column="1">
+                <StackPanel Spacing="10" MaxWidth="520">
+                    <TextBlock Text="بيانات الصنف" FontSize="22" />
+                    <TextBox Header="الكود الداخلي" Text="{Binding Editor.InternalCode, Mode=TwoWay}" />
+                    <TextBox Header="الاسم العربي" Text="{Binding Editor.ArabicName, Mode=TwoWay}" />
+                    <TextBox Header="الوصف" Text="{Binding Editor.Description, Mode=TwoWay}" />
+                    <NumberBox Header="سعر الجمهور" Value="{Binding Editor.RetailPrice, Mode=TwoWay}" Minimum="0" />
+                    <NumberBox Header="سعر الشراء" Value="{Binding Editor.PurchasePrice, Mode=TwoWay}" Minimum="0" />
+                    <TextBlock Text="الوحدة: علبة" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="حفظ" Command="{Binding SaveCommand}" />
+                        <Button Content="تفعيل/تعطيل" Command="{Binding ToggleActiveCommand}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{ThemeResource SystemFillColorCritical}" TextWrapping="Wrap" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Page>

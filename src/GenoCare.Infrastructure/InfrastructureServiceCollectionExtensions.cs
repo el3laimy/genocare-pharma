@@ -1,4 +1,5 @@
 using GenoCare.Infrastructure.Persistence;
+using GenoCare.Application.Catalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,7 +12,10 @@ public static class InfrastructureServiceCollectionExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(databasePath);
         services.AddPooledDbContextFactory<GenoCareDbContext>(options => options.UseSqlite($"Data Source={databasePath}"));
         services.AddScoped<CatalogPersistence>();
+        services.AddScoped<IProductCatalogStore>(sp => sp.GetRequiredService<CatalogPersistence>());
+        services.AddScoped<IBatchCatalogStore>(sp => sp.GetRequiredService<CatalogPersistence>());
         services.AddScoped<InventoryPersistence>();
+        services.AddScoped<IInventoryReadStore>(sp => sp.GetRequiredService<InventoryPersistence>());
         services.AddScoped<DatabaseInitializer>();
         return services;
     }
