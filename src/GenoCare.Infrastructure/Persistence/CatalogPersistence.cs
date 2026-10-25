@@ -19,6 +19,14 @@ public sealed class CatalogPersistence(IDbContextFactory<GenoCareDbContext> cont
         return await db.Products.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
+    public async Task UpdateProductAsync(Product product, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(product);
+        await using var db = await contextFactory.CreateDbContextAsync(cancellationToken);
+        db.Products.Update(product);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Product>> SearchProductsAsync(string query, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
