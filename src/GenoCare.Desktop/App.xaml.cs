@@ -17,7 +17,7 @@ public partial class App : Microsoft.UI.Xaml.Application
         _window.Activate();
     }
 
-    private static IServiceProvider ConfigureServices()
+    private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
         return services.BuildServiceProvider();
