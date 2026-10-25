@@ -8,5 +8,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj" />
     <Project Path="tests/GenoCare.Application.Tests/GenoCare.Application.Tests.csproj" />
+    <Project Path="tests/GenoCare.Infrastructure.Tests/GenoCare.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>

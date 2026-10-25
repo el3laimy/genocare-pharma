@@ -7,6 +7,12 @@ public enum SellingUnit
 
 public sealed class Product
 {
+    private Product()
+    {
+        InternalCode = string.Empty;
+        ArabicName = string.Empty;
+    }
+
     private Product(Guid id, string internalCode, string arabicName, string? description,
         decimal retailPrice, decimal purchasePrice)
     {
