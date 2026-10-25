@@ -51,6 +51,19 @@ public sealed class SqlitePersistenceTests
     }
 
     [Fact]
+    public void DefaultDatabasePathUsesLocalApplicationDataAndCreatesFolder()
+    {
+        var applicationName = $"GenoCare-Test-{Guid.NewGuid():N}";
+        var testRoot = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        var path = GenoCareDatabasePaths.GetDefaultPath(applicationName, testRoot);
+        var expectedRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        Assert.EndsWith(System.IO.Path.Combine(applicationName, "genocare.db"), path, StringComparison.OrdinalIgnoreCase);
+        Assert.True(Directory.Exists(System.IO.Path.GetDirectoryName(path)));
+        Assert.NotEqual(expectedRoot, testRoot);
+        Directory.Delete(testRoot, recursive: true);
+    }
+
+    [Fact]
     public async Task CatalogPersistenceCreatesRetrievesSearchesAndAddsBatches()
     {
         await using var database = await TestDatabase.CreateAsync();

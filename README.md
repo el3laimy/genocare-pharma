@@ -53,3 +53,5 @@ dotnet test tests/GenoCare.Infrastructure.Tests/GenoCare.Infrastructure.Tests.cs
 ## واجهة Task 005
 
 تحتوي `GenoCare.Desktop` الآن على Shell عربية RTL عبر `NavigationView` وصفحتي الأصناف والتشغيلات. الصفحات تستخدم Application use cases وDI ولا تتعامل مع EF مباشرة. تهيئة SQLite تتم عند بدء التطبيق في Local Application Data؛ عند فشلها تظهر رسالة عربية بدل فتح شاشة غير صالحة. اختبار GUI الفعلي يحتاج Windows ولا يثبت بمجرد compilation.
+
+لإنشاء حزمة اختبار Windows x64 يدويًا استخدم workflow `Windows x64 test build` عبر `workflow_dispatch`. الناتج unpackaged self-contained artifact وليس إصدار إنتاج أو حزمة موقعة. راجع [دليل الاختبار اليدوي](docs/WINDOWS_MANUAL_TEST.md).
