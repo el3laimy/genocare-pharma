@@ -35,9 +35,9 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Restore solution
-        run: dotnet restore GenoCare.slnx -p:Platform=x64
-      - name: Build solution
-        run: dotnet build GenoCare.slnx --no-restore --configuration Release -p:Platform=x64
+        run: dotnet restore GenoCare.slnx
+      - name: Build WinUI Desktop x64
+        run: dotnet build src/GenoCare.Desktop/GenoCare.Desktop.csproj --no-restore --configuration Release -p:Platform=x64
       - name: Run independent tests
         run: |
           dotnet test tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj --configuration Release --no-restore
