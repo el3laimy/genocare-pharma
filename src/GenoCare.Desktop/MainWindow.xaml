@@ -5,7 +5,7 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     Title="GenoCare">
     <Grid FlowDirection="RightToLeft">
-        <muxc:NavigationView x:Name="NavigationShell" IsBackButtonVisible="Collapsed" SelectionChanged="NavigationShell_SelectionChanged">
+        <muxc:NavigationView x:Name="NavigationShell" IsBackButtonVisible="Collapsed" Loaded="NavigationShell_Loaded" SelectionChanged="NavigationShell_SelectionChanged">
             <muxc:NavigationView.MenuItems>
                 <muxc:NavigationViewItem Content="الأصناف" Tag="Products" />
                 <muxc:NavigationViewItem Content="التشغيلات والمخزون" Tag="Batches" />

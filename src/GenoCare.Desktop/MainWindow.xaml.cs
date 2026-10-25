@@ -13,7 +13,6 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Loaded += MainWindow_Loaded;
     }
 
     public MainWindow(string startupError) : this()
@@ -24,7 +23,7 @@ public sealed partial class MainWindow : Window
         StartupErrorPanel.Visibility = Visibility.Visible;
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    private void NavigationShell_Loaded(object sender, RoutedEventArgs e)
     {
         if (!_startupFailure)
             NavigationShell.SelectedItem = NavigationShell.MenuItems[0];

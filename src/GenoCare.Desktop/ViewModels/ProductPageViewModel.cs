@@ -38,7 +38,11 @@ public partial class ProductPageViewModel(ProductCatalogUseCases catalog) : Obse
     }
 
     [RelayCommand]
-    private void NewProduct() => Editor = new ProductEditorState();
+    private void NewProduct()
+    {
+        SelectedProduct = null;
+        Editor = new ProductEditorState();
+    }
 
     [RelayCommand]
     private async Task SaveAsync()
@@ -73,7 +77,11 @@ public partial class ProductPageViewModel(ProductCatalogUseCases catalog) : Obse
     public void Select(ProductListItem? item)
         => Editor = item is null ? new ProductEditorState() : ProductEditorState.From(item);
 
-    partial void OnSelectedProductChanged(ProductListItem? value) => Select(value);
+    partial void OnSelectedProductChanged(ProductListItem? value)
+    {
+        if (value is not null)
+            Select(value);
+    }
 
     private async Task RunAsync(Func<Task> operation)
     {

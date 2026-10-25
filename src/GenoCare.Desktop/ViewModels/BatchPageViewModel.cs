@@ -9,6 +9,7 @@ namespace GenoCare.Desktop.ViewModels;
 public partial class BatchPageViewModel(ProductCatalogUseCases products, BatchCatalogUseCases batches, IInventoryReadStore inventory)
     : ObservableObject
 {
+    private CancellationTokenSource? _batchLoadCancellation;
     public ObservableCollection<ProductListItem> Products { get; } = [];
     public ObservableCollection<BatchListItem> Batches { get; } = [];
 
@@ -29,7 +30,13 @@ public partial class BatchPageViewModel(ProductCatalogUseCases products, BatchCa
         });
     }
 
-    partial void OnSelectedProductChanged(ProductListItem? value) => _ = LoadBatchesSafelyAsync();
+    partial void OnSelectedProductChanged(ProductListItem? value)
+    {
+        _batchLoadCancellation?.Cancel();
+        _batchLoadCancellation?.Dispose();
+        _batchLoadCancellation = new CancellationTokenSource();
+        _ = LoadBatchesSafelyAsync(_batchLoadCancellation.Token);
+    }
 
     [RelayCommand]
     private async Task AddBatchAsync()
@@ -45,21 +52,26 @@ public partial class BatchPageViewModel(ProductCatalogUseCases products, BatchCa
         });
     }
 
-    private async Task LoadBatchesAsync()
+    private async Task LoadBatchesAsync(CancellationToken cancellationToken = default)
     {
         Batches.Clear();
         if (SelectedProduct is null) return;
-        foreach (var batch in await batches.ListForProductAsync(SelectedProduct.Id))
+        var productId = SelectedProduct.Id;
+        foreach (var batch in await batches.ListForProductAsync(productId, cancellationToken))
         {
-            var balance = await inventory.GetBalanceAsync(batch.Id);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (SelectedProduct?.Id != productId) return;
+            var balance = await inventory.GetBalanceAsync(batch.Id, cancellationToken);
+            if (SelectedProduct?.Id != productId) return;
             Batches.Add(new BatchListItem(batch.Id, batch.BatchNumber, batch.ExpiryDate,
                 balance.Available, balance.Quarantined, balance.Damaged));
         }
     }
 
-    private async Task LoadBatchesSafelyAsync()
+    private async Task LoadBatchesSafelyAsync(CancellationToken cancellationToken)
     {
-        try { await LoadBatchesAsync(); }
+        try { await LoadBatchesAsync(cancellationToken); }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
         catch (Exception) { ErrorMessage = "تعذر تحميل تشغيلات الصنف المحدد."; }
     }
 
