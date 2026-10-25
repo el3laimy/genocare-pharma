@@ -1,9 +1,10 @@
 using GenoCare.Domain;
+using Xunit;
 
 namespace GenoCare.Domain.Tests;
 
 public sealed class DomainSmokeTests
 {
     [Fact]
-    public void Domain_assembly_is_available() => Assert.NotNull(new DomainMarker());
+    public void DomainAssemblyIsAvailable() => Assert.NotNull(new DomainMarker());
 }

@@ -32,7 +32,7 @@ C#/.NET 10، WinUI 3 وXAML وWindows App SDK، Fluent Design، MVVM عبر Comm
 
 ### المتطلبات
 
-يتطلب البناء .NET SDK 10.0.100 أو أحدث ضمن نفس feature band. بناء واختبار Domain وApplication وInfrastructure ممكنان على Linux. بناء WinUI 3 يتطلب Windows وWindows App SDK، ولا يُدّعى نجاحه على Linux.
+يتطلب البناء .NET SDK 10.0.100 أو أحدث ضمن نفس feature band. بناء واختبار Domain وApplication وInfrastructure واختبارات البداية تم التحقق منها على Linux باستخدام SDK 10.0.100. بناء WinUI 3 يتطلب Windows وWindows App SDK، ويستخدم CI منصة x64؛ لا يُدّعى نجاحه على Linux.
 
 ### أوامر التطوير
 
