@@ -17,6 +17,8 @@ public sealed class Batch
 
     public static Batch Create(Guid productId, string batchNumber, DateOnly expiryDate, Guid? id = null)
     {
+        if (id is Guid explicitId && explicitId == Guid.Empty)
+            throw new ArgumentException("Explicit batch identity cannot be empty.", nameof(id));
         if (productId == Guid.Empty)
             throw new ArgumentException("Product is required.", nameof(productId));
         if (string.IsNullOrWhiteSpace(batchNumber))

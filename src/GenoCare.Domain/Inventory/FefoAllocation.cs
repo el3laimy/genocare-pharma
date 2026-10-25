@@ -16,7 +16,20 @@ public sealed record EligibleBatchStock
     public int AvailableQuantity { get; }
 }
 
-public sealed record BatchAllocation(Guid BatchId, int Quantity);
+public sealed record BatchAllocation
+{
+    public BatchAllocation(Guid batchId, int quantity)
+    {
+        if (batchId == Guid.Empty)
+            throw new ArgumentException("Batch is required.", nameof(batchId));
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(quantity, 0);
+        BatchId = batchId;
+        Quantity = quantity;
+    }
+
+    public Guid BatchId { get; }
+    public int Quantity { get; }
+}
 
 public sealed record AllocationProposal(int RequestedQuantity, IReadOnlyList<BatchAllocation> Allocations)
 {
@@ -32,9 +45,22 @@ public static class FefoAllocator
             throw new ArgumentOutOfRangeException(nameof(requestedQuantity), "Requested quantity must be positive.");
         ArgumentNullException.ThrowIfNull(batches);
 
+        var candidates = batches.ToList();
+        Guid? productId = null;
+        var batchIds = new HashSet<Guid>();
+        foreach (var candidate in candidates)
+        {
+            ArgumentNullException.ThrowIfNull(candidate);
+            productId ??= candidate.Batch.ProductId;
+            if (!batchIds.Add(candidate.Batch.Id))
+                throw new ArgumentException("FEFO candidates cannot contain duplicate batch identities.", nameof(batches));
+            if (candidate.Batch.ProductId != productId)
+                throw new ArgumentException("FEFO candidates must belong to one product.", nameof(batches));
+        }
+
         var remaining = requestedQuantity;
         var allocations = new List<BatchAllocation>();
-        foreach (var stock in batches
+        foreach (var stock in candidates
             .Where(x => x.AvailableQuantity > 0)
             .OrderBy(x => x.Batch.ExpiryDate)
             .ThenBy(x => x.Batch.BatchNumber, StringComparer.Ordinal)

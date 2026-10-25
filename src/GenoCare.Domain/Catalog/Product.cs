@@ -30,6 +30,8 @@ public sealed class Product
     public static Product Create(string internalCode, string arabicName, decimal retailPrice,
         decimal purchasePrice, string? description = null, Guid? id = null)
     {
+        if (id is Guid explicitId && explicitId == Guid.Empty)
+            throw new ArgumentException("Explicit product identity cannot be empty.", nameof(id));
         ValidateText(internalCode, nameof(internalCode), 50);
         ValidateText(arabicName, nameof(arabicName), 200);
         ValidatePrice(retailPrice, nameof(retailPrice));
