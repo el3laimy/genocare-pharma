@@ -81,6 +81,77 @@ public sealed class SqlitePersistenceTests
         Assert.Equal(new StockBalance(7, 3, 0), balance);
         await Assert.ThrowsAsync<InvalidOperationException>(() => store.PostTransitionAsync(transition));
         Assert.Equal(balance, await store.GetBalanceAsync(batchId));
+        await using var db = database.CreateContext();
+        Assert.Equal(3, await db.StockMovements.CountAsync());
+    }
+
+    [Fact]
+    public async Task DecreasingAdjustmentCannotMakeAnyConditionNegative()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var productId = Guid.NewGuid();
+        var batchId = Guid.NewGuid();
+        await database.SeedBatchAsync(productId, batchId);
+        var store = new InventoryPersistence(database.Factory);
+        foreach (var condition in Enum.GetValues<StockCondition>())
+        {
+            await store.PostMovementAsync(new StockReceipt(productId, batchId, BoxQuantity.Positive(2), condition, $"R-{condition}", At));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => store.PostMovementAsync(
+                new StockAdjustment(productId, batchId, BoxQuantity.Positive(3), AdjustmentDirection.Decrease, condition, $"D-{condition}", At)));
+        }
+        Assert.Equal(new StockBalance(2, 2, 2), await store.GetBalanceAsync(batchId));
+    }
+
+    [Fact]
+    public async Task ValidAdjustmentDecreaseAndIncreaseArePersisted()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var productId = Guid.NewGuid();
+        var batchId = Guid.NewGuid();
+        await database.SeedBatchAsync(productId, batchId);
+        var store = new InventoryPersistence(database.Factory);
+        await store.PostMovementAsync(new StockReceipt(productId, batchId, BoxQuantity.Positive(5), StockCondition.Available, "R", At));
+        await store.PostMovementAsync(new StockAdjustment(productId, batchId, BoxQuantity.Positive(2), AdjustmentDirection.Decrease, StockCondition.Available, "D", At));
+        await store.PostMovementAsync(new StockAdjustment(productId, batchId, BoxQuantity.Positive(4), AdjustmentDirection.Increase, StockCondition.Damaged, "I", At));
+        Assert.Equal(new StockBalance(3, 0, 4), await store.GetBalanceAsync(batchId));
+    }
+
+    [Fact]
+    public async Task ProductBatchMismatchIsRejectedForMovementAndTransition()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var productA = Guid.NewGuid();
+        var batchA = Guid.NewGuid();
+        var productB = Guid.NewGuid();
+        var batchB = Guid.NewGuid();
+        await database.SeedBatchAsync(productA, batchA);
+        await database.SeedBatchAsync(productB, batchB);
+        var store = new InventoryPersistence(database.Factory);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => store.PostMovementAsync(
+            new StockReceipt(productA, batchB, BoxQuantity.Positive(1), StockCondition.Available, "BAD", At)));
+        var transition = InventoryStatusTransition.Create(productA, batchB, StockCondition.Available,
+            StockCondition.Quarantined, BoxQuantity.Positive(1), "BAD-T", At);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => store.PostTransitionAsync(transition));
+        await using var db = database.CreateContext();
+        Assert.Empty(await db.StockMovements.ToListAsync());
+    }
+
+    [Fact]
+    public async Task StockMovementsAreAppendOnlyThroughTheContext()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var productId = Guid.NewGuid();
+        var batchId = Guid.NewGuid();
+        await database.SeedBatchAsync(productId, batchId);
+        var movement = new StockReceipt(productId, batchId, BoxQuantity.Positive(1), StockCondition.Available, "APPEND", At);
+        await new InventoryPersistence(database.Factory).PostMovementAsync(movement);
+        await using var db = database.CreateContext();
+        var record = await db.StockMovements.SingleAsync();
+        record.Quantity = 2;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync());
+        db.ChangeTracker.Clear();
+        db.StockMovements.Remove(record);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync());
     }
 
     [Fact]

@@ -43,6 +43,7 @@ public sealed class GenoCareDbContext(DbContextOptions<GenoCareDbContext> option
             entity.Property(x => x.BatchNumber).HasMaxLength(100).IsRequired();
             entity.Property(x => x.ExpiryDate).HasConversion<DateOnlyConverter, DateOnlyComparer>();
             entity.HasIndex(x => new { x.ProductId, x.BatchNumber }).IsUnique();
+            entity.HasAlternateKey(x => new { x.ProductId, x.Id });
             entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -62,8 +63,29 @@ public sealed class GenoCareDbContext(DbContextOptions<GenoCareDbContext> option
             entity.HasIndex(x => new { x.TransactionId, x.EntryIndex }).IsUnique();
             entity.HasIndex(x => new { x.BatchId, x.OccurredAt });
             entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<Batch>().WithMany().HasForeignKey(x => x.BatchId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Batch>().WithMany().HasForeignKey(x => new { x.ProductId, x.BatchId })
+                .HasPrincipalKey(x => new { x.ProductId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         });
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        EnsureMovementAppendOnly();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureMovementAppendOnly();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void EnsureMovementAppendOnly()
+    {
+        if (ChangeTracker.Entries<StockMovementRecord>().Any(entry =>
+            entry.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Stock movements are append-only and cannot be updated or deleted.");
     }
 }
 

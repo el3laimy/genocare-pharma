@@ -32,6 +32,8 @@
 
 `Products` يفرض فهرسًا فريدًا على `InternalCode`. `Batches` يفرض فهرسًا فريدًا مركبًا على `(ProductId, BatchNumber)`. `StockMovements` يحفظ `TransactionId`, `EntryIndex`, النوع، الحالة، الكمية، المرجع، والتاريخ، مع فهرس فريد `(TransactionId, EntryIndex)` وفهارس Batch/التاريخ وقيود FK إلى Product وBatch.
 
+يستخدم `StockMovements` مفتاحًا أجنبيًا مركبًا `(ProductId, BatchId)` إلى `(ProductId, Id)` في `Batches` لمنع حركة تربط صنفًا بتشغيلة صنف آخر. كمية الحركة موجبة، والحالة/النوع ضمن القيم المعروفة. التطبيق يمنع تعديل/حذف الحركات بعد الإدراج؛ لا توجد آلية audit كاملة بعد.
+
 الأسعار `CurrentRetailPrice` و`CurrentPurchasePrice` تُخزن `TEXT` عبر conversion invariant-culture إلى `decimal` لاستعادة القيمة الدقيقة. هذا لا يحسم سياسة الضرائب أو التقريب التجاري.
 
 ## قواعد تصميم

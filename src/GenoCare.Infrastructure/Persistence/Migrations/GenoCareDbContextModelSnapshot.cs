@@ -130,9 +130,9 @@ namespace GenoCare.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
-
                     b.HasIndex("BatchId", "OccurredAt");
+
+                    b.HasIndex("ProductId", "BatchId");
 
                     b.HasIndex("TransactionId", "EntryIndex")
                         .IsUnique();
@@ -158,15 +158,16 @@ namespace GenoCare.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("GenoCare.Infrastructure.Persistence.StockMovementRecord", b =>
                 {
-                    b.HasOne("GenoCare.Domain.Catalog.Batch", null)
-                        .WithMany()
-                        .HasForeignKey("BatchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("GenoCare.Domain.Catalog.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GenoCare.Domain.Catalog.Batch", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId", "BatchId")
+                        .HasPrincipalKey("ProductId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

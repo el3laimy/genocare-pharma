@@ -12,10 +12,13 @@ public sealed class InventoryPersistence(IDbContextFactory<GenoCareDbContext> co
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         if (await db.StockMovements.AnyAsync(x => x.TransactionId == movement.Id, cancellationToken))
             throw new InvalidOperationException("This stock transaction has already been posted.");
+        await EnsureBatchBelongsToProductAsync(db, movement.ProductId, movement.BatchId, cancellationToken);
         if (movement is StockIssue && movement.Condition != StockCondition.Available)
             throw new InvalidOperationException("Stock issues must use available stock.");
         if (movement is StockIssue)
-            await EnsureAvailableAsync(db, movement.BatchId, movement.Quantity.Value, cancellationToken);
+            await EnsureConditionQuantityAsync(db, movement.BatchId, StockCondition.Available, movement.Quantity.Value, cancellationToken);
+        if (movement is StockAdjustment { Direction: AdjustmentDirection.Decrease } adjustment)
+            await EnsureConditionQuantityAsync(db, adjustment.BatchId, adjustment.Condition, adjustment.Quantity.Value, cancellationToken);
         db.StockMovements.Add(ToRecord(movement, movement.Id));
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -29,6 +32,7 @@ public sealed class InventoryPersistence(IDbContextFactory<GenoCareDbContext> co
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         if (await db.StockMovements.AnyAsync(x => x.TransactionId == transition.Id, cancellationToken))
             throw new InvalidOperationException("This status transition has already been posted.");
+        await EnsureBatchBelongsToProductAsync(db, transition.ProductId, transition.BatchId, cancellationToken);
         var balance = await GetBalanceAsync(db, transition.BatchId, cancellationToken);
         var sourceQuantity = balance.For(transition.From);
         if (sourceQuantity < transition.Quantity.Value)
@@ -44,11 +48,23 @@ public sealed class InventoryPersistence(IDbContextFactory<GenoCareDbContext> co
         return await GetBalanceAsync(db, batchId, cancellationToken);
     }
 
-    private static async Task EnsureAvailableAsync(GenoCareDbContext db, Guid batchId, int quantity, CancellationToken cancellationToken)
+    private static async Task EnsureConditionQuantityAsync(GenoCareDbContext db, Guid batchId,
+        StockCondition condition, int quantity, CancellationToken cancellationToken)
     {
         var balance = await GetBalanceAsync(db, batchId, cancellationToken);
-        if (balance.Available < quantity)
-            throw new InvalidOperationException("Insufficient available stock.");
+        if (balance.For(condition) < quantity)
+            throw new InvalidOperationException($"Insufficient {condition} stock.");
+    }
+
+    private static async Task EnsureBatchBelongsToProductAsync(GenoCareDbContext db, Guid productId,
+        Guid batchId, CancellationToken cancellationToken)
+    {
+        var batchProductId = await db.Batches.Where(x => x.Id == batchId).Select(x => (Guid?)x.ProductId)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (batchProductId is null)
+            throw new InvalidOperationException("The referenced batch does not exist.");
+        if (batchProductId.Value != productId)
+            throw new InvalidOperationException("The movement product does not match the batch product.");
     }
 
     private static async Task<StockBalance> GetBalanceAsync(GenoCareDbContext db, Guid batchId, CancellationToken cancellationToken)

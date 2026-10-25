@@ -8,8 +8,10 @@ namespace GenoCare.Infrastructure.Persistence.Migrations
     /// <inheritdoc />
     public partial class InitialCatalogInventory : Migration
     {
+        private static readonly string[] ProductBatchKeyColumns = { "ProductId", "Id" };
         private static readonly string[] ProductBatchIndexColumns = { "ProductId", "BatchNumber" };
         private static readonly string[] StockBatchDateIndexColumns = { "BatchId", "OccurredAt" };
+        private static readonly string[] StockProductBatchIndexColumns = { "ProductId", "BatchId" };
         private static readonly string[] TransactionEntryIndexColumns = { "TransactionId", "EntryIndex" };
 
         /// <inheritdoc />
@@ -46,6 +48,7 @@ namespace GenoCare.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Batches", x => x.Id);
+                    table.UniqueConstraint("AK_Batches_ProductId_Id", x => new { x.ProductId, x.Id });
                     table.CheckConstraint("CK_Batches_BatchNumber_NotBlank", "length(trim(BatchNumber)) > 0");
                     table.ForeignKey(
                         name: "FK_Batches_Products_ProductId",
@@ -78,10 +81,10 @@ namespace GenoCare.Infrastructure.Persistence.Migrations
                     table.CheckConstraint("CK_StockMovements_Kind_Valid", "Kind IN (1, 2, 3, 4)");
                     table.CheckConstraint("CK_StockMovements_Quantity_Positive", "Quantity > 0");
                     table.ForeignKey(
-                        name: "FK_StockMovements_Batches_BatchId",
-                        column: x => x.BatchId,
+                        name: "FK_StockMovements_Batches_ProductId_BatchId",
+                        columns: x => new { x.ProductId, x.BatchId },
                         principalTable: "Batches",
-                        principalColumn: "Id",
+                        principalColumns: ProductBatchKeyColumns,
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_StockMovements_Products_ProductId",
@@ -109,9 +112,9 @@ namespace GenoCare.Infrastructure.Persistence.Migrations
                 columns: StockBatchDateIndexColumns);
 
             migrationBuilder.CreateIndex(
-                name: "IX_StockMovements_ProductId",
+                name: "IX_StockMovements_ProductId_BatchId",
                 table: "StockMovements",
-                column: "ProductId");
+                columns: StockProductBatchIndexColumns);
 
             migrationBuilder.CreateIndex(
                 name: "IX_StockMovements_TransactionId_EntryIndex",
