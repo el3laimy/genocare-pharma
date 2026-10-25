@@ -9,13 +9,23 @@
 | StockMovement | دخول/خروج/تسوية مرجعها ومستندها وBatchها. |
 | Customer / Supplier | الطرف، بيانات الاتصال، الرصيد الافتتاحي، الائتمان ومدة السداد. |
 | SalesOrder | طلب عميل قبل الترحيل. |
-| SalesInvoice / SalesLine | فاتورة مرحّلة وسطورها؛ تحفظ السعر والخصم والكمية وقتها. |
+| SalesInvoice / SalesLine / BatchAllocation | فاتورة ولقطة السعر/الخصم وبند قد يوزع كميته على عدة Batches. |
 | Purchase / PurchaseReceipt | شراء واستلام كلي/جزئي مع Batch وتكلفة. |
 | Payment | تحصيل عميل أو سداد مورد وتطبيقه على الحساب. |
 | Return / ReturnLine | مرتجع مرتبط أو استثنائي مع السبب. |
 | Stocktake / Adjustment | جرد وفروق وتسويات مع اعتماد. |
 | Representative / Delivery | مندوب وحالة تسليم وتحصيل. |
 | AuditEntry | من، متى، ماذا، قبل/بعد، والمرجع. |
+
+## نمذجة البيع والمخزون التفصيلية
+
+- `SalesInvoiceLine` يحفظ `RetailPriceSnapshot` و`DiscountPercent` و`NetUnitPrice`، ولا يرتبط بتشغيلة واحدة.
+- `BatchAllocation` يربط سطر الفاتورة بـBatch واحد أو أكثر؛ مجموع الكميات المخصصة يساوي الكمية المباعة، و`BonusQuantity` حقل مستقل لكنه يخصم من المخزون مع الكمية المدفوعة وفق سياسة البونص.
+- المخزون يفصل `AvailableQuantity` عن `QuarantineQuantity` و`NonSellableQuantity`؛ لا تدخل الكميات غير الصالحة في اقتراح FEFO.
+- نقص المخزون لا ينشئ رصيدًا سالبًا ضمنيًا. تجاوز إداري، إن اعتمد، يولد `StockOverride/Adjustment` بسبب وصلاحية ومرجع Audit.
+- تكلفة المبيعات الفعلية تأتي من Batch allocations (مثل moving/lot cost) وتبقى مستقلة عن سعر الشراء الحالي في `Product`.
+- الاستلام الجزئي يزيد المخزون عند كل Receipt، بينما مديونية المورد تسجل على Purchase/الفاتورة مرة واحدة؛ لا تنشئ كل دفعة استلام مديونية مكررة.
+- تعديل فاتورة محفوظة يتم عبر نسخة/عكس/Adjustment مضبوط حسب القرار، وليس UPDATE صامتًا لصف مرحّل.
 
 ## علاقات وقواعد مؤكدة
 

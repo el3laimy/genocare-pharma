@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feature/**]
+  pull_request:
+    branches: [main]
+
+jobs:
+  linux:
+    name: Linux independent build and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore src/GenoCare.Domain/GenoCare.Domain.csproj
+      - run: dotnet restore src/GenoCare.Application/GenoCare.Application.csproj
+      - run: dotnet restore src/GenoCare.Infrastructure/GenoCare.Infrastructure.csproj
+      - run: dotnet build src/GenoCare.Domain/GenoCare.Domain.csproj --no-restore --configuration Release
+      - run: dotnet build src/GenoCare.Application/GenoCare.Application.csproj --no-restore --configuration Release
+      - run: dotnet build src/GenoCare.Infrastructure/GenoCare.Infrastructure.csproj --no-restore --configuration Release
+      - run: dotnet test tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj --configuration Release
+      - run: dotnet test tests/GenoCare.Application.Tests/GenoCare.Application.Tests.csproj --configuration Release
+
+  windows:
+    name: Windows WinUI build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore solution
+        run: dotnet restore GenoCare.slnx
+      - name: Build solution
+        run: dotnet build GenoCare.slnx --no-restore --configuration Release

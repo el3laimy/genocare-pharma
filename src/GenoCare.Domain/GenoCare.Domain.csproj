@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>GenoCare.Domain</AssemblyName>
+    <RootNamespace>GenoCare.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>

@@ -25,3 +25,24 @@ C#/.NET 10، WinUI 3 وXAML وWindows App SDK، Fluent Design، MVVM عبر Comm
 - [خارطة الطريق](docs/ROADMAP.md) · [القرارات المفتوحة](docs/OPEN_DECISIONS.md)
 
 هذه المهمة توثق الأساس فقط؛ لا تحتوي على كود تطبيق أو قاعدة بيانات فعلية أو migrations.
+
+## بنية الحل الحالية
+
+يحتوي الفرع `feature/002-solution-bootstrap` على `GenoCare.slnx` ومشاريع `Domain` و`Application` و`Infrastructure` و`Desktop`، واختبارات xUnit مستقلة عن Windows. مشروع Desktop هو WinUI 3 حقيقي بواجهة أولية RTL فقط؛ لا يحتوي وظائف أعمال.
+
+### المتطلبات
+
+يتطلب البناء .NET SDK 10.0.100 أو أحدث ضمن نفس feature band. بناء واختبار Domain وApplication وInfrastructure ممكنان على Linux. بناء WinUI 3 يتطلب Windows وWindows App SDK، ولا يُدّعى نجاحه على Linux.
+
+### أوامر التطوير
+
+```bash
+dotnet restore src/GenoCare.Domain/GenoCare.Domain.csproj
+dotnet build src/GenoCare.Domain/GenoCare.Domain.csproj
+dotnet test tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj
+dotnet test tests/GenoCare.Application.Tests/GenoCare.Application.Tests.csproj
+```
+
+بناء `src/GenoCare.Desktop/GenoCare.Desktop.csproj` واختبار الحل الكامل موكلان إلى Windows CI في `.github/workflows/ci.yml`.
+
+المتطلبات التفصيلية ومصدر إجابات العميل في [CLIENT_REQUIREMENTS_SOURCE](docs/CLIENT_REQUIREMENTS_SOURCE.md)، والقرارات التي لم تُحسم في [OPEN_DECISIONS](docs/OPEN_DECISIONS.md).

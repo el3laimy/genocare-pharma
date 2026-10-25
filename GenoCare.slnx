@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GenoCare.Domain/GenoCare.Domain.csproj" />
+    <Project Path="src/GenoCare.Application/GenoCare.Application.csproj" />
+    <Project Path="src/GenoCare.Infrastructure/GenoCare.Infrastructure.csproj" />
+    <Project Path="src/GenoCare.Desktop/GenoCare.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj" />
+    <Project Path="tests/GenoCare.Application.Tests/GenoCare.Application.Tests.csproj" />
+  </Folder>
+</Solution>
