@@ -2,6 +2,12 @@
 
 هذا تصور قبل التنفيذ؛ لا توجد قاعدة أو migrations في هذه المهمة. أسماء الجداول/الأعمدة قابلة للمراجعة.
 
+## ترجمة Domain الحالية إلى تخزين لاحق
+
+الـDomain في Task 003 لا يعتمد على EF Core. عند إضافة Infrastructure يجب حفظ `products` و`batches` دون رصيد Batch مستقل، وحفظ `stock_movements` كمصدر الحقيقة. يشتق الرصيد بتجميع SignedQuantity حسب الحالة؛ Available وحدها قابلة للبيع، بينما Quarantined وDamaged محفوظتان للتتبع ولا تدخلان في FEFO.
+
+يقابل `BatchAllocation` المستقبلي جدول تخصيص منفصل عن سطر الفاتورة، ويجب أن يظل `unit_cost` من الحركة/Batch لا من سعر الشراء الحالي. سياسة منع/تجاوز النقص لم تعتمد بعد، لذلك لا يضيف التصميم رصيدًا سالبًا ضمنيًا.
+
 ## الجداول المقترحة
 
 - `products(id, internal_code, name, unit, current_retail_price, current_purchase_price, is_active)`؛ السعر الحالي ليس مصدر تكلفة مبيعات تاريخية.
