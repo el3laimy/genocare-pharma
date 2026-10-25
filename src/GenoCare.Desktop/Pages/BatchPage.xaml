@@ -1,0 +1,35 @@
+<Page
+    x:Class="GenoCare.Desktop.Pages.BatchPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    FlowDirection="RightToLeft">
+    <Grid Padding="24" RowSpacing="16">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <ComboBox Header="الصنف" Width="300" ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct, Mode=TwoWay}">
+                <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding ArabicName}" /></DataTemplate></ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBox Header="رقم التشغيلة" Width="180" Text="{Binding BatchNumber, Mode=TwoWay}" />
+            <DatePicker Header="تاريخ الصلاحية" SelectedDate="{Binding SelectedDate, Mode=TwoWay}" />
+            <Button Content="إضافة" Command="{Binding AddBatchCommand}" VerticalAlignment="Bottom" />
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <TextBlock Text="التشغيلات" FontSize="22" />
+            <ListView Grid.Row="1" ItemsSource="{Binding Batches}">
+                <ListView.ItemTemplate><DataTemplate>
+                    <Grid Padding="8" ColumnSpacing="24">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding BatchNumber}" /><TextBlock Grid.Column="1" Text="{Binding ExpiryDate}" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="متاح:" /><TextBlock Text="{Binding Available}" />
+                            <TextBlock Text="فحص:" /><TextBlock Text="{Binding Quarantined}" />
+                            <TextBlock Text="تالف:" /><TextBlock Text="{Binding Damaged}" />
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate></ListView.ItemTemplate>
+            </ListView>
+            <TextBlock Grid.Row="1" Text="{Binding ErrorMessage}" Foreground="{ThemeResource SystemFillColorCritical}" VerticalAlignment="Bottom" TextWrapping="Wrap" />
+        </Grid>
+    </Grid>
+</Page>

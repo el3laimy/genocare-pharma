@@ -5,5 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <!-- Required by CommunityToolkit.Mvvm partial ObservableProperty generation on .NET 10. -->
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 </Project>

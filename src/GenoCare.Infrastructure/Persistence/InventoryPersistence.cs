@@ -1,9 +1,10 @@
 using GenoCare.Domain.Inventory;
+using GenoCare.Application.Catalog;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenoCare.Infrastructure.Persistence;
 
-public sealed class InventoryPersistence(IDbContextFactory<GenoCareDbContext> contextFactory)
+public sealed class InventoryPersistence(IDbContextFactory<GenoCareDbContext> contextFactory) : IInventoryReadStore
 {
     public async Task PostMovementAsync(StockMovement movement, CancellationToken cancellationToken = default)
     {

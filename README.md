@@ -49,3 +49,7 @@ dotnet test tests/GenoCare.Infrastructure.Tests/GenoCare.Infrastructure.Tests.cs
 يجب أن يمرر المضيف مسار قاعدة البيانات إلى `AddGenoCareInfrastructure` داخل Windows Application Data، ثم يستدعي `DatabaseInitializer` لتطبيق migrations. لا تُخزن قاعدة SQLite بجوار binaries. SQLite يعمل offline، وتحتاج الكتابات المتزامنة إلى معاملات قصيرة؛ لا توجد مزامنة أجهزة في هذه المرحلة.
 
 المتطلبات التفصيلية ومصدر إجابات العميل في [CLIENT_REQUIREMENTS_SOURCE](docs/CLIENT_REQUIREMENTS_SOURCE.md)، والقرارات التي لم تُحسم في [OPEN_DECISIONS](docs/OPEN_DECISIONS.md).
+
+## واجهة Task 005
+
+تحتوي `GenoCare.Desktop` الآن على Shell عربية RTL عبر `NavigationView` وصفحتي الأصناف والتشغيلات. الصفحات تستخدم Application use cases وDI ولا تتعامل مع EF مباشرة. تهيئة SQLite تتم عند بدء التطبيق في Local Application Data؛ عند فشلها تظهر رسالة عربية بدل فتح شاشة غير صالحة. اختبار GUI الفعلي يحتاج Windows ولا يثبت بمجرد compilation.
