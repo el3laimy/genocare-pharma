@@ -4,5 +4,5 @@ namespace GenoCare.Desktop.ViewModels;
 
 public partial class ShellViewModel : ObservableObject
 {
-    [ObservableProperty] private string _title = "جينوكير";
+    [ObservableProperty] public partial string Title { get; set; } = "جينوكير";
 }

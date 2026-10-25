@@ -1,5 +1,6 @@
 using GenoCare.Domain.Catalog;
 using GenoCare.Application.Catalog;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace GenoCare.Infrastructure.Persistence;
@@ -11,7 +12,9 @@ public sealed class CatalogPersistence(IDbContextFactory<GenoCareDbContext> cont
         ArgumentNullException.ThrowIfNull(product);
         await using var db = await contextFactory.CreateDbContextAsync(cancellationToken);
         db.Products.Add(product);
-        await db.SaveChangesAsync(cancellationToken);
+        try { await db.SaveChangesAsync(cancellationToken); }
+        catch (DbUpdateException exception) when (exception.InnerException is SqliteException)
+        { throw new InvalidOperationException("الكود الداخلي مستخدم بالفعل أو بيانات الصنف مكررة.", exception); }
     }
 
     public Task AddAsync(Product product, CancellationToken cancellationToken = default) => AddProductAsync(product, cancellationToken);
@@ -29,7 +32,9 @@ public sealed class CatalogPersistence(IDbContextFactory<GenoCareDbContext> cont
         ArgumentNullException.ThrowIfNull(product);
         await using var db = await contextFactory.CreateDbContextAsync(cancellationToken);
         db.Products.Update(product);
-        await db.SaveChangesAsync(cancellationToken);
+        try { await db.SaveChangesAsync(cancellationToken); }
+        catch (DbUpdateException exception) when (exception.InnerException is SqliteException)
+        { throw new InvalidOperationException("الكود الداخلي مستخدم بالفعل أو بيانات الصنف مكررة.", exception); }
     }
 
     public Task UpdateAsync(Product product, CancellationToken cancellationToken = default) => UpdateProductAsync(product, cancellationToken);
@@ -52,7 +57,9 @@ public sealed class CatalogPersistence(IDbContextFactory<GenoCareDbContext> cont
         ArgumentNullException.ThrowIfNull(batch);
         await using var db = await contextFactory.CreateDbContextAsync(cancellationToken);
         db.Batches.Add(batch);
-        await db.SaveChangesAsync(cancellationToken);
+        try { await db.SaveChangesAsync(cancellationToken); }
+        catch (DbUpdateException exception) when (exception.InnerException is SqliteException)
+        { throw new InvalidOperationException("رقم التشغيلة مستخدم لهذا الصنف أو بيانات التشغيلة مكررة.", exception); }
     }
 
     public Task AddAsync(Batch batch, CancellationToken cancellationToken = default) => AddBatchAsync(batch, cancellationToken);

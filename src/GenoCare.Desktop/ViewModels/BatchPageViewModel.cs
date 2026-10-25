@@ -12,11 +12,11 @@ public partial class BatchPageViewModel(ProductCatalogUseCases products, BatchCa
     public ObservableCollection<ProductListItem> Products { get; } = [];
     public ObservableCollection<BatchListItem> Batches { get; } = [];
 
-    [ObservableProperty] private ProductListItem? _selectedProduct;
-    [ObservableProperty] private string _batchNumber = string.Empty;
-    [ObservableProperty] private DateTimeOffset? _expiryDate;
-    [ObservableProperty] private string _errorMessage = string.Empty;
-    [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] public partial ProductListItem? SelectedProduct { get; set; }
+    [ObservableProperty] public partial string BatchNumber { get; set; } = string.Empty;
+    [ObservableProperty] public partial DateTimeOffset? SelectedDate { get; set; }
+    [ObservableProperty] public partial string ErrorMessage { get; set; } = string.Empty;
+    [ObservableProperty] public partial bool IsBusy { get; set; }
 
     [RelayCommand]
     private async Task LoadAsync()
@@ -29,10 +29,7 @@ public partial class BatchPageViewModel(ProductCatalogUseCases products, BatchCa
         });
     }
 
-    partial void OnSelectedProductChanged(ProductListItem? value)
-    {
-        if (value is not null) _ = LoadBatchesAsync();
-    }
+    partial void OnSelectedProductChanged(ProductListItem? value) => _ = LoadBatchesSafelyAsync();
 
     [RelayCommand]
     private async Task AddBatchAsync()
@@ -40,24 +37,30 @@ public partial class BatchPageViewModel(ProductCatalogUseCases products, BatchCa
         await RunAsync(async () =>
         {
             if (SelectedProduct is null) throw new ArgumentException("اختر الصنف أولًا.");
-            if (ExpiryDate is not DateTimeOffset expiry) throw new ArgumentException("أدخل تاريخ الصلاحية.");
+            if (SelectedDate is not DateTimeOffset expiry) throw new ArgumentException("أدخل تاريخ الصلاحية.");
             await batches.CreateAsync(SelectedProduct.Id, BatchNumber, DateOnly.FromDateTime(expiry.DateTime));
             BatchNumber = string.Empty;
-            ExpiryDate = null;
+            SelectedDate = null;
             await LoadBatchesAsync();
         });
     }
 
     private async Task LoadBatchesAsync()
     {
-        if (SelectedProduct is null) return;
         Batches.Clear();
+        if (SelectedProduct is null) return;
         foreach (var batch in await batches.ListForProductAsync(SelectedProduct.Id))
         {
             var balance = await inventory.GetBalanceAsync(batch.Id);
             Batches.Add(new BatchListItem(batch.Id, batch.BatchNumber, batch.ExpiryDate,
                 balance.Available, balance.Quarantined, balance.Damaged));
         }
+    }
+
+    private async Task LoadBatchesSafelyAsync()
+    {
+        try { await LoadBatchesAsync(); }
+        catch (Exception) { ErrorMessage = "تعذر تحميل تشغيلات الصنف المحدد."; }
     }
 
     private async Task RunAsync(Func<Task> operation)

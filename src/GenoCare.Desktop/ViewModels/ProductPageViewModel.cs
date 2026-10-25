@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GenoCare.Application.Catalog;
 using GenoCare.Domain.Catalog;
+using System.Globalization;
 
 namespace GenoCare.Desktop.ViewModels;
 
@@ -11,19 +12,19 @@ public partial class ProductPageViewModel(ProductCatalogUseCases catalog) : Obse
     public ObservableCollection<ProductListItem> Products { get; } = [];
 
     [ObservableProperty]
-    private string _searchText = string.Empty;
+    public partial string SearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private ProductEditorState _editor = new();
+    public partial ProductEditorState Editor { get; set; } = new();
 
     [ObservableProperty]
-    private ProductListItem? _selectedProduct;
+    public partial ProductListItem? SelectedProduct { get; set; }
 
     [ObservableProperty]
-    private string _errorMessage = string.Empty;
+    public partial string ErrorMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isBusy;
+    public partial bool IsBusy { get; set; }
 
     [RelayCommand]
     private async Task SearchAsync()
@@ -45,10 +46,13 @@ public partial class ProductPageViewModel(ProductCatalogUseCases catalog) : Obse
         await RunAsync(async () =>
         {
             var draft = Editor.ToDraft();
+            Product product;
             if (Editor.Id is Guid id)
-                await catalog.UpdateAsync(id, draft);
+                product = await catalog.UpdateAsync(id, draft);
             else
-                await catalog.CreateAsync(draft);
+                product = await catalog.CreateAsync(draft);
+            Editor = ProductEditorState.From(product);
+            SelectedProduct = ProductListItem.From(product);
             await SearchAsync();
             ErrorMessage = "تم حفظ الصنف بنجاح.";
         });
@@ -83,34 +87,56 @@ public partial class ProductPageViewModel(ProductCatalogUseCases catalog) : Obse
     }
 }
 
-public sealed record ProductListItem(Guid Id, string InternalCode, string ArabicName, decimal RetailPrice,
-    decimal PurchasePrice, bool IsActive)
+public sealed record ProductListItem(Guid Id, string InternalCode, string ArabicName, string? Description,
+    decimal RetailPrice, decimal PurchasePrice, bool IsActive)
 {
     public static ProductListItem From(Product product) => new(product.Id, product.InternalCode, product.ArabicName,
-        product.CurrentRetailPrice, product.CurrentPurchasePrice, product.IsActive);
+        product.Description, product.CurrentRetailPrice, product.CurrentPurchasePrice, product.IsActive);
 }
 
 public sealed class ProductEditorState : ObservableObject
 {
     public Guid? Id { get; init; }
+    public bool IsExisting => Id.HasValue;
     private string _internalCode = string.Empty;
     private string _arabicName = string.Empty;
     private string _description = string.Empty;
-    private decimal _retailPrice;
-    private decimal _purchasePrice;
+    private string _retailPriceText = string.Empty;
+    private string _purchasePriceText = string.Empty;
     private bool _isActive = true;
     public string InternalCode { get => _internalCode; set => SetProperty(ref _internalCode, value); }
     public string ArabicName { get => _arabicName; set => SetProperty(ref _arabicName, value); }
     public string Description { get => _description; set => SetProperty(ref _description, value); }
-    public decimal RetailPrice { get => _retailPrice; set => SetProperty(ref _retailPrice, value); }
-    public decimal PurchasePrice { get => _purchasePrice; set => SetProperty(ref _purchasePrice, value); }
+    public string RetailPriceText { get => _retailPriceText; set => SetProperty(ref _retailPriceText, value); }
+    public string PurchasePriceText { get => _purchasePriceText; set => SetProperty(ref _purchasePriceText, value); }
     public bool IsActive { get => _isActive; set => SetProperty(ref _isActive, value); }
 
-    public ProductDraft ToDraft() => new(InternalCode, ArabicName, Description, RetailPrice, PurchasePrice);
+    public ProductDraft ToDraft()
+    {
+        if (!TryParse(RetailPriceText, out var retailPrice))
+            throw new ArgumentException("سعر الجمهور غير صالح.", nameof(RetailPriceText));
+        if (!TryParse(PurchasePriceText, out var purchasePrice))
+            throw new ArgumentException("سعر الشراء غير صالح.", nameof(PurchasePriceText));
+        return new ProductDraft(InternalCode, ArabicName, Description, retailPrice, purchasePrice);
+    }
 
     public static ProductEditorState From(ProductListItem item) => new()
     {
         Id = item.Id, InternalCode = item.InternalCode, ArabicName = item.ArabicName,
-        RetailPrice = item.RetailPrice, PurchasePrice = item.PurchasePrice, IsActive = item.IsActive
+        Description = item.Description ?? string.Empty, RetailPriceText = Format(item.RetailPrice),
+        PurchasePriceText = Format(item.PurchasePrice), IsActive = item.IsActive
     };
+
+    public static ProductEditorState From(Product product) => new()
+    {
+        Id = product.Id, InternalCode = product.InternalCode, ArabicName = product.ArabicName,
+        Description = product.Description ?? string.Empty, RetailPriceText = Format(product.CurrentRetailPrice),
+        PurchasePriceText = Format(product.CurrentPurchasePrice), IsActive = product.IsActive
+    };
+
+    private static string Format(decimal value) => value.ToString("G29", CultureInfo.CurrentCulture);
+
+    private static bool TryParse(string value, out decimal result)
+        => decimal.TryParse(value, NumberStyles.Number, CultureInfo.CurrentCulture, out result)
+            || decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out result);
 }

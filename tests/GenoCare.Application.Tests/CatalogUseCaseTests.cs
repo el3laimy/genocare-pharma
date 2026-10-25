@@ -12,9 +12,12 @@ public sealed class CatalogUseCaseTests
         var store = new FakeProductStore();
         var useCases = new ProductCatalogUseCases(store);
         var created = await useCases.CreateAsync(new ProductDraft("C-1", "صنف", "وصف", 10, 6));
-        await useCases.UpdateAsync(created.Id, new ProductDraft("C-1", "صنف محدث", null, 11, 7));
-        Assert.Equal("صنف محدث", store.Product!.ArabicName);
-        Assert.Equal(11, store.Product.CurrentRetailPrice);
+        Assert.NotEqual(Guid.Empty, created.Id);
+        await useCases.UpdateAsync(created.Id, new ProductDraft("C-1", "صنف محدث", "وصف محفوظ", 11, 7));
+        await useCases.UpdateAsync(created.Id, new ProductDraft("C-1", "صنف محدث 2", "وصف محفوظ", 12, 8));
+        Assert.Equal("صنف محدث 2", store.Product!.ArabicName);
+        Assert.Equal("وصف محفوظ", store.Product.Description);
+        Assert.Equal(12, store.Product.CurrentRetailPrice);
     }
 
     [Fact]
