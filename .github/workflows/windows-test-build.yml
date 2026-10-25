@@ -1,0 +1,71 @@
+name: Windows x64 test build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  windows-test-build:
+    name: Publish GenoCare Windows x64 test artifact
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore solution
+        run: dotnet restore GenoCare.slnx
+
+      - name: Build WinUI x64
+        run: dotnet build src/GenoCare.Desktop/GenoCare.Desktop.csproj --no-restore --configuration Release -p:Platform=x64
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          dotnet test tests/GenoCare.Domain.Tests/GenoCare.Domain.Tests.csproj --configuration Release --no-restore
+          dotnet test tests/GenoCare.Application.Tests/GenoCare.Application.Tests.csproj --configuration Release --no-restore
+          dotnet test tests/GenoCare.Infrastructure.Tests/GenoCare.Infrastructure.Tests.csproj --configuration Release --no-restore
+
+      - name: Publish unpackaged self-contained x64 app
+        run: >-
+          dotnet publish src/GenoCare.Desktop/GenoCare.Desktop.csproj
+          --configuration Release
+          --framework net10.0-windows10.0.19041.0
+          --runtime win-x64
+          --self-contained true
+          --output artifacts/GenoCare-win-x64
+          -p:Platform=x64
+          -p:PublishProfile=
+          -p:WindowsPackageType=None
+          -p:WindowsAppSDKSelfContained=true
+
+      - name: Validate publish output
+        shell: pwsh
+        run: |
+          $output = Join-Path $env:GITHUB_WORKSPACE 'artifacts/GenoCare-win-x64'
+          $exe = Join-Path $output 'GenoCare.Desktop.exe'
+          if (-not (Test-Path $exe)) { throw "Published executable was not found: $exe" }
+          if (-not (Get-ChildItem $output -Filter 'Microsoft.WindowsAppRuntime*.dll' -File)) { throw 'Windows App SDK runtime files were not published.' }
+          if (-not (Get-ChildItem $output -Filter 'e_sqlite3.dll' -File -Recurse)) { throw 'SQLite native dependency was not published.' }
+          if (Get-ChildItem $output -Filter '*.db' -File -Recurse) { throw 'A database file was included in the publish output.' }
+          $metadata = [ordered]@{
+            commit = '${{ github.sha }}'
+            configuration = 'Release'
+            architecture = 'x64'
+            packaging = 'unpackaged-self-contained'
+            executable = 'GenoCare.Desktop.exe'
+          }
+          $metadata | ConvertTo-Json | Set-Content (Join-Path $output 'BUILD-METADATA.json')
+
+      - name: Upload downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GenoCare-win-x64-${{ github.sha }}
+          path: artifacts/GenoCare-win-x64
+          if-no-files-found: error
+          retention-days: 14
