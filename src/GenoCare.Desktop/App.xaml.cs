@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml;
 
 namespace GenoCare.Desktop;
 
-public partial class App : Application
+public partial class App : Microsoft.UI.Xaml.Application
 {
     public static IServiceProvider Services { get; } = ConfigureServices();
 
